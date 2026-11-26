@@ -1,0 +1,58 @@
+{
+  "crop_id": "lechuga",
+  "common_name": "Lechuga",
+  "scientific_name": "Lactuca sativa",
+  "family": "Asteraceae",
+  "irrigation_regime": "high_frequency_shallow_root",
+  "soil_texture_recommended": "Franco-arenoso o franco rico en materia orgánica, pH 6.0-7.0",
+  "root_depth_m": {
+    "inicial": 0.15,
+    "desarrollo": 0.25,
+    "medio": 0.35,
+    "final": 0.35
+  },
+  "soil_hydrology_vwc_pct": {
+    "saturation_vwc_pct": 45.0,
+    "field_capacity_vwc_pct": 30.0,
+    "wilting_point_vwc_pct": 13.0,
+    "optimal_min_vwc_pct": 24.9,
+    "optimal_max_vwc_pct": 29.8,
+    "critical_stress_vwc_pct": 22.0,
+    "excess_moisture_vwc_pct": 36.0
+  },
+  "readily_available_water_fraction_p": 0.30,
+  "kc_by_stage": {
+    "inicial": 0.70,
+    "desarrollo": 0.85,
+    "medio": 1.00,
+    "final": 0.95
+  },
+  "stage_durations_days": {
+    "inicial": 20,
+    "desarrollo": 30,
+    "medio": 15,
+    "final": 10
+  },
+  "et0_reference_mm_day": 4.0,
+  "ambient_conditions": {
+    "optimal_air_temp_c": [15.0, 21.0],
+    "ambient_relative_humidity_range_pct": [65.0, 80.0]
+  },
+  "control_parameters": {
+    "hysteresis_band_pct": 2.5,
+    "min_cooldown_minutes": 60,
+    "max_irrigation_duration_minutes": 15,
+    "nominal_flow_liters_per_min": 1.8
+  },
+  "monitored_variables": [
+    "soil_moisture_pct",
+    "soil_temperature_c",
+    "air_temperature_c",
+    "relative_humidity_pct",
+    "etc_mm_day"
+  ],
+  "sources": [
+    "Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). FAO Irrigation and Drainage Paper No. 56 (Table 12, p. 110; Table 22, p. 163).",
+    "Brouwer, C., & Heibloem, M. (1986). Irrigation Water Management: Training Manual No. 3. FAO."
+  ]
+}

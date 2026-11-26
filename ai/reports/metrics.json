@@ -1,0 +1,357 @@
+{
+  "generated_at": "2026-11-17T23:22:39.634230",
+  "random_seed": 42,
+  "python_version": "3.14.7",
+  "scikit_learn_version": "1.9.1",
+  "dataset": {
+    "id": "ecoirrigate_kolkata_2025",
+    "doi": "10.17632/8x4v7yy3ds.1",
+    "train_rows": 14456,
+    "val_rows": 2948,
+    "test_rows": 3140
+  },
+  "best_models": {
+    "calibration": {
+      "model_id": "model1_calibration",
+      "version": "1.0.0",
+      "algorithm": "GradientBoosting",
+      "artifact_path": "ai/models/model1_calibration.joblib",
+      "features": [
+        "Raw_Capacitive_ADC",
+        "Sensor_Board_Temperature_C",
+        "Sensor_Voltage_V",
+        "Soil_Temperature_C",
+        "Atm_Temperature_C",
+        "Hour_sin",
+        "Hour_cos"
+      ],
+      "target": "Volumetric_Moisture_Pct",
+      "metrics": {
+        "task": "calibration",
+        "horizon": "instant",
+        "algorithm": "GradientBoosting",
+        "val_mae": 0.3617,
+        "val_rmse": 0.456,
+        "val_r2": 0.9112,
+        "test_mae": 0.4238,
+        "test_rmse": 0.5921,
+        "test_r2": 0.9303,
+        "train_seconds": 3.896,
+        "selected_best": true
+      }
+    },
+    "forecast_1h": {
+      "model_id": "model2_forecast_1h",
+      "version": "1.1.0",
+      "algorithm": "LinearRegression",
+      "mode": "residual_delta",
+      "artifact_path": "ai/models/model2_forecast_1h.joblib",
+      "features": [
+        "Volumetric_Moisture_Pct",
+        "Raw_Capacitive_ADC",
+        "Sensor_Board_Temperature_C",
+        "Sensor_Voltage_V",
+        "Atm_Pressure_inHg",
+        "Atm_Temperature_C",
+        "Soil_Temperature_C",
+        "temp_gradient_c",
+        "board_soil_temp_diff_c",
+        "Hour_sin",
+        "Hour_cos",
+        "vwc_lag_15m",
+        "vwc_lag_1h",
+        "vwc_lag_4h",
+        "vwc_lag_6h",
+        "vwc_lag_12h",
+        "vwc_lag_24h",
+        "adc_lag_1h",
+        "adc_lag_6h",
+        "soil_temp_lag_1h",
+        "soil_temp_lag_6h",
+        "vwc_rolling_mean_4h",
+        "vwc_rolling_std_4h",
+        "vwc_rolling_mean_24h",
+        "vwc_rate_1h",
+        "vwc_rate_6h",
+        "atm_temp_rolling_mean_6h"
+      ],
+      "target": "target_vwc_1h",
+      "metrics": {
+        "task": "forecast_1h",
+        "horizon": "1h",
+        "algorithm": "LinearRegression",
+        "val_mae": 0.0572,
+        "val_rmse": 0.2587,
+        "val_r2": 0.9716,
+        "test_mae": 0.1044,
+        "test_rmse": 0.2879,
+        "test_r2": 0.9834,
+        "train_seconds": 0.029,
+        "selected_best": true
+      }
+    },
+    "forecast_6h": {
+      "model_id": "model2_forecast_6h",
+      "version": "1.1.0",
+      "algorithm": "LinearRegression",
+      "mode": "residual_delta",
+      "artifact_path": "ai/models/model2_forecast_6h.joblib",
+      "features": [
+        "Volumetric_Moisture_Pct",
+        "Raw_Capacitive_ADC",
+        "Sensor_Board_Temperature_C",
+        "Sensor_Voltage_V",
+        "Atm_Pressure_inHg",
+        "Atm_Temperature_C",
+        "Soil_Temperature_C",
+        "temp_gradient_c",
+        "board_soil_temp_diff_c",
+        "Hour_sin",
+        "Hour_cos",
+        "vwc_lag_15m",
+        "vwc_lag_1h",
+        "vwc_lag_4h",
+        "vwc_lag_6h",
+        "vwc_lag_12h",
+        "vwc_lag_24h",
+        "adc_lag_1h",
+        "adc_lag_6h",
+        "soil_temp_lag_1h",
+        "soil_temp_lag_6h",
+        "vwc_rolling_mean_4h",
+        "vwc_rolling_std_4h",
+        "vwc_rolling_mean_24h",
+        "vwc_rate_1h",
+        "vwc_rate_6h",
+        "atm_temp_rolling_mean_6h"
+      ],
+      "target": "target_vwc_6h",
+      "metrics": {
+        "task": "forecast_6h",
+        "horizon": "6h",
+        "algorithm": "LinearRegression",
+        "val_mae": 0.2222,
+        "val_rmse": 0.6265,
+        "val_r2": 0.8362,
+        "test_mae": 0.501,
+        "test_rmse": 0.7926,
+        "test_r2": 0.8704,
+        "train_seconds": 0.024,
+        "selected_best": true
+      }
+    },
+    "forecast_12h": {
+      "model_id": "model2_forecast_12h",
+      "version": "1.1.0",
+      "algorithm": "LinearRegression",
+      "mode": "residual_delta",
+      "artifact_path": "ai/models/model2_forecast_12h.joblib",
+      "features": [
+        "Volumetric_Moisture_Pct",
+        "Raw_Capacitive_ADC",
+        "Sensor_Board_Temperature_C",
+        "Sensor_Voltage_V",
+        "Atm_Pressure_inHg",
+        "Atm_Temperature_C",
+        "Soil_Temperature_C",
+        "temp_gradient_c",
+        "board_soil_temp_diff_c",
+        "Hour_sin",
+        "Hour_cos",
+        "vwc_lag_15m",
+        "vwc_lag_1h",
+        "vwc_lag_4h",
+        "vwc_lag_6h",
+        "vwc_lag_12h",
+        "vwc_lag_24h",
+        "adc_lag_1h",
+        "adc_lag_6h",
+        "soil_temp_lag_1h",
+        "soil_temp_lag_6h",
+        "vwc_rolling_mean_4h",
+        "vwc_rolling_std_4h",
+        "vwc_rolling_mean_24h",
+        "vwc_rate_1h",
+        "vwc_rate_6h",
+        "atm_temp_rolling_mean_6h"
+      ],
+      "target": "target_vwc_12h",
+      "metrics": {
+        "task": "forecast_12h",
+        "horizon": "12h",
+        "algorithm": "LinearRegression",
+        "val_mae": 0.3754,
+        "val_rmse": 0.8601,
+        "val_r2": 0.6963,
+        "test_mae": 0.9849,
+        "test_rmse": 1.3169,
+        "test_r2": 0.6268,
+        "train_seconds": 0.024,
+        "selected_best": true
+      }
+    },
+    "forecast_24h": {
+      "model_id": "model2_forecast_24h",
+      "version": "1.1.0",
+      "algorithm": "LinearRegression",
+      "mode": "residual_delta",
+      "artifact_path": "ai/models/model2_forecast_24h.joblib",
+      "features": [
+        "Volumetric_Moisture_Pct",
+        "Raw_Capacitive_ADC",
+        "Sensor_Board_Temperature_C",
+        "Sensor_Voltage_V",
+        "Atm_Pressure_inHg",
+        "Atm_Temperature_C",
+        "Soil_Temperature_C",
+        "temp_gradient_c",
+        "board_soil_temp_diff_c",
+        "Hour_sin",
+        "Hour_cos",
+        "vwc_lag_15m",
+        "vwc_lag_1h",
+        "vwc_lag_4h",
+        "vwc_lag_6h",
+        "vwc_lag_12h",
+        "vwc_lag_24h",
+        "adc_lag_1h",
+        "adc_lag_6h",
+        "soil_temp_lag_1h",
+        "soil_temp_lag_6h",
+        "vwc_rolling_mean_4h",
+        "vwc_rolling_std_4h",
+        "vwc_rolling_mean_24h",
+        "vwc_rate_1h",
+        "vwc_rate_6h",
+        "atm_temp_rolling_mean_6h"
+      ],
+      "target": "target_vwc_24h",
+      "metrics": {
+        "task": "forecast_24h",
+        "horizon": "24h",
+        "algorithm": "LinearRegression",
+        "val_mae": 0.6,
+        "val_rmse": 1.136,
+        "val_r2": 0.479,
+        "test_mae": 1.7405,
+        "test_rmse": 2.1049,
+        "test_r2": -0.0588,
+        "train_seconds": 0.027,
+        "selected_best": true
+      }
+    }
+  },
+  "classification_6h_evaluation": {
+    "Hybrid_Forecast6h_Rule": {
+      "precision": 0.8625,
+      "recall": 0.6832,
+      "f1_score": 0.7624,
+      "confusion_matrix": [
+        [
+          3028,
+          11
+        ],
+        [
+          32,
+          69
+        ]
+      ],
+      "threshold_vwc_pct": 10.51
+    },
+    "LogisticRegression_Classifier": {
+      "precision": 0.8095,
+      "recall": 0.8416,
+      "f1_score": 0.8252,
+      "confusion_matrix": [
+        [
+          3019,
+          20
+        ],
+        [
+          16,
+          85
+        ]
+      ],
+      "threshold_vwc_pct": 10.51
+    },
+    "HistGradientBoosting_Classifier": {
+      "precision": 0.7083,
+      "recall": 0.6733,
+      "f1_score": 0.6904,
+      "confusion_matrix": [
+        [
+          3011,
+          28
+        ],
+        [
+          33,
+          68
+        ]
+      ],
+      "threshold_vwc_pct": 10.51
+    }
+  },
+  "feature_importance_6h_top12": [
+    {
+      "feature": "Sensor_Voltage_V",
+      "importance_mean": 14.53031,
+      "importance_std": 0.20445
+    },
+    {
+      "feature": "Raw_Capacitive_ADC",
+      "importance_mean": 14.21899,
+      "importance_std": 0.22014
+    },
+    {
+      "feature": "vwc_rolling_mean_4h",
+      "importance_mean": 1.37418,
+      "importance_std": 0.01804
+    },
+    {
+      "feature": "vwc_lag_15m",
+      "importance_mean": 0.47547,
+      "importance_std": 0.01085
+    },
+    {
+      "feature": "vwc_rolling_mean_24h",
+      "importance_mean": 0.38784,
+      "importance_std": 0.00725
+    },
+    {
+      "feature": "vwc_lag_1h",
+      "importance_mean": 0.27075,
+      "importance_std": 0.00723
+    },
+    {
+      "feature": "Volumetric_Moisture_Pct",
+      "importance_mean": 0.26299,
+      "importance_std": 0.00698
+    },
+    {
+      "feature": "vwc_lag_12h",
+      "importance_mean": 0.24862,
+      "importance_std": 0.00868
+    },
+    {
+      "feature": "vwc_lag_4h",
+      "importance_mean": 0.22571,
+      "importance_std": 0.00574
+    },
+    {
+      "feature": "vwc_lag_6h",
+      "importance_mean": 0.15153,
+      "importance_std": 0.00473
+    },
+    {
+      "feature": "vwc_rolling_std_4h",
+      "importance_mean": 0.08681,
+      "importance_std": 0.00497
+    },
+    {
+      "feature": "Hour_sin",
+      "importance_mean": 0.07484,
+      "importance_std": 0.0042
+    }
+  ],
+  "total_training_seconds": 135.14
+}

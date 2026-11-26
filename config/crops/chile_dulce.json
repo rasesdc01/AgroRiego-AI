@@ -1,0 +1,58 @@
+{
+  "crop_id": "chile_dulce",
+  "common_name": "Chile dulce",
+  "scientific_name": "Capsicum annuum",
+  "family": "Solanaceae",
+  "irrigation_regime": "precision_drip_floral_protection",
+  "soil_texture_recommended": "Franco o franco-arenoso rico en materia orgánica, drenaje rápido, pH 6.0-6.8",
+  "root_depth_m": {
+    "inicial": 0.25,
+    "desarrollo": 0.50,
+    "medio": 0.80,
+    "final": 0.80
+  },
+  "soil_hydrology_vwc_pct": {
+    "saturation_vwc_pct": 46.0,
+    "field_capacity_vwc_pct": 31.0,
+    "wilting_point_vwc_pct": 14.0,
+    "optimal_min_vwc_pct": 25.9,
+    "optimal_max_vwc_pct": 30.5,
+    "critical_stress_vwc_pct": 22.5,
+    "excess_moisture_vwc_pct": 35.5
+  },
+  "readily_available_water_fraction_p": 0.30,
+  "kc_by_stage": {
+    "inicial": 0.60,
+    "desarrollo": 0.82,
+    "medio": 1.05,
+    "final": 0.90
+  },
+  "stage_durations_days": {
+    "inicial": 30,
+    "desarrollo": 35,
+    "medio": 40,
+    "final": 20
+  },
+  "et0_reference_mm_day": 4.5,
+  "ambient_conditions": {
+    "optimal_air_temp_c": [20.0, 28.0],
+    "ambient_relative_humidity_range_pct": [60.0, 75.0]
+  },
+  "control_parameters": {
+    "hysteresis_band_pct": 3.0,
+    "min_cooldown_minutes": 90,
+    "max_irrigation_duration_minutes": 20,
+    "nominal_flow_liters_per_min": 2.2
+  },
+  "monitored_variables": [
+    "soil_moisture_pct",
+    "soil_temperature_c",
+    "air_temperature_c",
+    "relative_humidity_pct",
+    "etc_mm_day"
+  ],
+  "sources": [
+    "Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). FAO Irrigation and Drainage Paper No. 56 (Table 12, p. 110; Table 22, p. 163).",
+    "MAG / INTA Costa Rica. (2020). Manual de manejo agronómico del chile dulce."
+  ]
+}

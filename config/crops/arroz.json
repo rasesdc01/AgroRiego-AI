@@ -1,0 +1,67 @@
+{
+  "crop_id": "arroz",
+  "common_name": "Arroz",
+  "scientific_name": "Oryza sativa",
+  "family": "Poaceae",
+  "irrigation_regime": "flood_paddy",
+  "soil_texture_recommended": "Franco-arcilloso o arcilloso de baja permeabilidad (< 2 mm/h) para retención de lámina, pH 5.5-6.8",
+  "root_depth_m": {
+    "inicial": 0.20,
+    "desarrollo": 0.35,
+    "medio": 0.50,
+    "final": 0.50
+  },
+  "soil_hydrology_vwc_pct": {
+    "saturation_vwc_pct": 50.0,
+    "field_capacity_vwc_pct": 40.0,
+    "wilting_point_vwc_pct": 21.0,
+    "optimal_min_vwc_pct": 42.0,
+    "optimal_max_vwc_pct": 50.0,
+    "critical_stress_vwc_pct": 36.0,
+    "excess_moisture_vwc_pct": 55.0
+  },
+  "paddy_lamina_params_mm": {
+    "inicial": {"target_water_lamina_mm": 30.0, "min_water_lamina_mm": 10.0, "max_water_lamina_mm": 50.0, "drainage_required": false},
+    "desarrollo": {"target_water_lamina_mm": 50.0, "min_water_lamina_mm": 25.0, "max_water_lamina_mm": 80.0, "drainage_required": false},
+    "medio": {"target_water_lamina_mm": 70.0, "min_water_lamina_mm": 40.0, "max_water_lamina_mm": 100.0, "drainage_required": false},
+    "final": {"target_water_lamina_mm": 0.0, "min_water_lamina_mm": 0.0, "max_water_lamina_mm": 15.0, "drainage_required": true}
+  },
+  "readily_available_water_fraction_p": 0.20,
+  "kc_by_stage": {
+    "inicial": 1.05,
+    "desarrollo": 1.12,
+    "medio": 1.20,
+    "final": 0.75
+  },
+  "stage_durations_days": {
+    "inicial": 30,
+    "desarrollo": 30,
+    "medio": 60,
+    "final": 30
+  },
+  "et0_reference_mm_day": 5.2,
+  "ambient_conditions": {
+    "optimal_air_temp_c": [24.0, 32.0],
+    "ambient_relative_humidity_range_pct": [70.0, 88.0]
+  },
+  "control_parameters": {
+    "hysteresis_band_pct": 3.0,
+    "lamina_hysteresis_mm": 15.0,
+    "min_cooldown_minutes": 120,
+    "max_irrigation_duration_minutes": 60,
+    "nominal_flow_liters_per_min": 6.0
+  },
+  "monitored_variables": [
+    "water_lamina_mm",
+    "soil_moisture_pct",
+    "soil_temperature_c",
+    "air_temperature_c",
+    "relative_humidity_pct",
+    "etc_mm_day"
+  ],
+  "sources": [
+    "Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). FAO Irrigation and Drainage Paper No. 56 (Table 12, p. 112; Table 22, p. 164).",
+    "Brouwer, C., Prins, K., & Heibloem, M. (1989). Irrigation Water Management: Irrigation Scheduling (Training Manual No. 4). FAO.",
+    "INEC Costa Rica. (2025). Encuesta Nacional Agropecuaria (ENA) 2024."
+  ]
+}

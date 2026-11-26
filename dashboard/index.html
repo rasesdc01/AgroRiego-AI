@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgroRiego AI — Monitoreo y Riego Inteligente</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/styles.css?v=6" />
+  <script src="/assets/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- SIDEBAR NAVIGATION (7 clean sections) -->
+    <aside class="sidebar" id="sidebar" aria-label="Navegación principal">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">AgroRiego AI</div>
+          <div class="brand-sub">UIA · Riego Inteligente</div>
+        </div>
+      </div>
+
+      <nav class="nav-list">
+        <button class="nav-item active" data-view="overview" aria-current="page">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+          Resumen
+        </button>
+        <button class="nav-item" data-view="tinkercad">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>
+          Tinkercad en Vivo
+        </button>
+        <button class="nav-item" data-view="crops">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22v-9m0 0c-3.5 0-6-2.5-6-6 3.5 0 6 2.5 6 6zm0 0c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"/></svg>
+          Cultivos (7)
+        </button>
+        <button class="nav-item" data-view="irrigation">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6m0 12v2M4.93 4.93l4.24 4.24m5.66 5.66l4.24 4.24M2 12h6m8 0h6"/></svg>
+          Riego y Simulador
+        </button>
+        <button class="nav-item" data-view="ai">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+          Inteligencia Artificial
+        </button>
+        <button class="nav-item" data-view="alerts">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Alertas y Reportes
+          <span class="nav-badge" id="navAlertBadge">0</span>
+        </button>
+        <button class="nav-item" data-view="datasets">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          Datasets y Fuentes
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div>IA + FAO-56 + Arduino</div>
+        <div class="mono" style="margin-top:3px; color: var(--accent-botanical);">Modo Simulado Seguro</div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-area">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menú">Menú</button>
+          <div>
+            <h1 id="viewTitle" style="font-size:1.15rem; margin:0;">Resumen en Vivo</h1>
+            <div class="panel-sub" id="viewSubtitle">Estado actual de tus 2 zonas conectadas a Tinkercad y la IA</div>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <span class="pill hydro" id="liveStatusPill" title="Sincronización automática con Tinkercad"><span class="dot"></span>En vivo · Tinkercad</span>
+          <button type="button" class="pill botanical" style="cursor:pointer;" onclick="switchView('datasets')" title="Dataset real verificado CC BY 4.0 — Ver citas APA 7 y BibTeX"><span class="dot"></span>EcoIrrigate Real Dataset</button>
+          <button class="btn btn-sm" onclick="refreshActiveView()">Actualizar</button>
+        </div>
+      </header>
+
+      <main class="content-wrap">
+        <!-- ==================== 1. OVERVIEW (RESUMEN) ==================== -->
+        <section class="view-panel active" id="view-overview">
+          <div class="panel-header" style="margin-bottom:0.85rem;">
+            <div>
+              <h2 style="font-size:1.05rem;">Estado en Vivo — Tus 2 Zonas</h2>
+              <p class="panel-sub">Lectura actual de humedad, estado de la bomba y recomendación de la IA</p>
+            </div>
+            <button class="btn btn-hydro btn-sm" onclick="switchView('tinkercad')">Abrir Tinkercad</button>
+          </div>
+
+          <div class="live-zones-grid" id="overviewHwZones"></div>
+
+          <div class="kpi-strip" id="overviewKpis"></div>
+
+          <div class="overview-lower">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Humedad Reciente</h2>
+                  <p class="panel-sub">Últimas mediciones guardadas (% de humedad del suelo)</p>
+                </div>
+              </div>
+              <div class="chart-box"><canvas id="overviewChart"></canvas></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Avisos y Resumen IA</h2>
+                  <p class="panel-sub">Alertas activas agrupadas y últimas decisiones</p>
+                </div>
+                <button class="btn btn-sm" onclick="switchView('alerts')">Ver alertas →</button>
+              </div>
+              <div id="overviewAlertsList"></div>
+              <h3 style="font-size:0.86rem; margin:0.95rem 0 0.45rem; color:var(--text-secondary);">Últimas decisiones IA</h3>
+              <div id="overviewRecsList"></div>
+            </div>
+          </div>
+
+          <details class="clean-disclosure" id="virtualCropsDrawer">
+            <summary>Ver los 7 cultivos virtuales de referencia</summary>
+            <div class="virt-zone-grid" id="overviewVirtZones"></div>
+          </details>
+        </section>
+
+        <!-- ==================== 2. TINKERCAD DUAL-ZONE TWIN ==================== -->
+        <section class="view-panel" id="view-tinkercad">
+          <div class="grid-2" style="margin-bottom:1.15rem;">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Circuito Dual Arduino Uno R3</h2>
+                  <p class="panel-sub">Refleja en tiempo real el estado de los sensores A0/A1 y bombas D8/D9</p>
+                </div>
+              </div>
+              <div id="tinkercadSvgHost"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Control Manual de Sensores (A0 y A1)</h2>
+                  <p class="panel-sub">Ajusta la humedad simulada para probar cómo responde la IA</p>
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="panel-elevated">
+                  <h3 style="font-size:0.95rem; color:var(--accent-hydro);">Zona 1 · A0 / Bomba D8</h3>
+                  <div class="form-row">
+                    <label for="z1AdcRange">Lectura sensor (0=Seco · 800=Húmedo): <span class="mono" id="z1AdcVal">560</span></label>
+                    <input type="range" id="z1AdcRange" min="0" max="1023" value="560" oninput="document.getElementById('z1AdcVal').textContent=this.value" onchange="sendTinkercadFrame('zone_01')" />
+                  </div>
+                  <div class="form-row">
+                    <label for="z1Temp">Temp. Aire (°C)</label>
+                    <input type="number" id="z1Temp" value="28.0" step="0.5" />
+                  </div>
+                  <button class="btn btn-primary" style="width:100%;" onclick="sendTinkercadFrame('zone_01')">Enviar Zona 1</button>
+                </div>
+
+                <div class="panel-elevated">
+                  <h3 style="font-size:0.95rem; color:var(--accent-botanical);">Zona 2 · A1 / Bomba D9</h3>
+                  <div class="form-row">
+                    <label for="z2AdcRange">Lectura sensor (0=Seco · 800=Húmedo): <span class="mono" id="z2AdcVal">600</span></label>
+                    <input type="range" id="z2AdcRange" min="0" max="1023" value="600" oninput="document.getElementById('z2AdcVal').textContent=this.value" onchange="sendTinkercadFrame('zone_02')" />
+                  </div>
+                  <div class="form-row">
+                    <label for="z2Temp">Temp. Aire (°C)</label>
+                    <input type="number" id="z2Temp" value="23.5" step="0.5" />
+                  </div>
+                  <button class="btn btn-primary" style="width:100%;" onclick="sendTinkercadFrame('zone_02')">Enviar Zona 2</button>
+                </div>
+              </div>
+
+              <h3 style="font-size:0.86rem; margin:1rem 0 0.45rem; color:var(--text-secondary);">Monitor Serial (Arduino ↔ IA)</h3>
+              <div class="serial-console" id="serialConsole">
+                <div class="serial-line">// Monitor listo. Cambia A0/A1 o ejecuta una prueba rápida abajo.</div>
+              </div>
+            </div>
+          </div>
+
+          <details class="clean-disclosure" open>
+            <summary>Pruebas rápidas de circuito</summary>
+            <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+              <button class="btn" onclick="runCircuitPreset('adequate')">1. Humedad adecuada</button>
+              <button class="btn btn-hydro" onclick="runCircuitPreset('dry')">2. Suelo seco (regar)</button>
+              <button class="btn" onclick="runCircuitPreset('independent')">3. Zonas independientes</button>
+              <button class="btn" onclick="runCircuitPreset('recovery')">4. Parar por humedad</button>
+              <button class="btn btn-danger" onclick="runCircuitPreset('fault')">5. Sensor desconectado</button>
+              <button class="btn btn-danger" onclick="runCircuitPreset('timeout')">6. Tiempo máximo</button>
+              <button class="btn" onclick="resetZoneGuards('zone_01')">Reiniciar protecciones</button>
+            </div>
+          </details>
+        </section>
+
+        <!-- ==================== 3. CROPS (7 PROFILES) ==================== -->
+        <section class="view-panel" id="view-crops">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Fichas Agronómicas (7 Cultivos)</h2>
+                <p class="panel-sub">Parámetros reales de humedad del suelo, clima y etapas de crecimiento (FAO-56)</p>
+              </div>
+            </div>
+            <div class="crop-tabs" id="cropTabs"></div>
+            <div id="cropDetailContainer"></div>
+          </div>
+        </section>
+
+        <!-- ==================== 4. IRRIGATION, SIMULATOR & SETTINGS ==================== -->
+        <section class="view-panel" id="view-irrigation">
+          <div class="sub-tabs" role="tablist" aria-label="Opciones de riego">
+            <button class="sub-tab active" data-sub="sub-irrigation-control" onclick="switchSubTab('irrigation', 'sub-irrigation-control')">Control de Bombas</button>
+            <button class="sub-tab" data-sub="sub-irrigation-sim" onclick="switchSubTab('irrigation', 'sub-irrigation-sim')">Simulador</button>
+            <button class="sub-tab" data-sub="sub-irrigation-settings" onclick="switchSubTab('irrigation', 'sub-irrigation-settings')">Ajustes de Zona</button>
+          </div>
+
+          <!-- Sub-tab 1: Pump control -->
+          <div class="sub-panel active" id="sub-irrigation-control">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Control de Zonas y Bombas</h2>
+                  <p class="panel-sub">Cambia el modo de cada zona o enciende/apaga manualmente con seguridad activa</p>
+                </div>
+              </div>
+              <div class="table-scroll">
+                <table id="irrigationZonesTable">
+                  <thead><tr><th>Zona</th><th>Cultivo / Etapa</th><th>Humedad</th><th>Modo</th><th>Bomba</th><th>Acciones</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <details class="clean-disclosure">
+              <summary>Historial de riegos y comandos enviados</summary>
+              <div class="table-scroll">
+                <table id="irrigationEventsTable">
+                  <thead><tr><th>Fecha/Hora</th><th>Zona</th><th>Cultivo</th><th>Acción</th><th>Modo</th><th>Duración (min)</th><th>Vol. (L)</th><th>Comando</th><th>Motivo</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </details>
+          </div>
+
+          <!-- Sub-tab 2: Interactive Simulator -->
+          <div class="sub-panel" id="sub-irrigation-sim">
+            <div class="grid-2">
+              <div class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h2>Simulador Climático y Agronómico</h2>
+                    <p class="panel-sub">Prueba sequía, lluvia o calor usando los modelos de IA reales</p>
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="form-row"><label for="simZone">Zona</label><select id="simZone"></select></div>
+                  <div class="form-row"><label for="simCrop">Cultivo</label><select id="simCrop"></select></div>
+                  <div class="form-row"><label for="simStage">Etapa</label><select id="simStage"><option value="inicial">Inicial</option><option value="desarrollo">Desarrollo</option><option value="medio" selected>Media</option><option value="final">Final</option></select></div>
+                  <div class="form-row"><label for="simMoisture">Humedad Suelo: <span class="mono" id="simMoistVal">21.5</span>%</label><input type="range" id="simMoisture" min="5" max="55" step="0.5" value="21.5" oninput="document.getElementById('simMoistVal').textContent=this.value" /></div>
+                  <div class="form-row"><label for="simTemp">Temp. Aire: <span class="mono" id="simTempVal">31.0</span>°C</label><input type="range" id="simTemp" min="10" max="42" step="0.5" value="31.0" oninput="document.getElementById('simTempVal').textContent=this.value" /></div>
+                  <div class="form-row"><label for="simRh">Humedad Aire: <span class="mono" id="simRhVal">52</span>%</label><input type="range" id="simRh" min="20" max="95" step="1" value="52" oninput="document.getElementById('simRhVal').textContent=this.value" /></div>
+                  <div class="form-row"><label for="simRain">Lluvia (mm)</label><input type="number" id="simRain" value="0" min="0" max="120" /></div>
+                  <div class="form-row"><label for="simLamina">Lámina Arroz (mm)</label><input type="number" id="simLamina" value="20" min="0" max="150" /></div>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:0.45rem; margin-bottom:0.85rem;">
+                  <button class="btn btn-sm" onclick="applySimPreset('drought')">Sequía</button>
+                  <button class="btn btn-sm" onclick="applySimPreset('rain')">Lluvia intensa</button>
+                  <button class="btn btn-sm" onclick="applySimPreset('heatwave')">Ola de calor</button>
+                  <button class="btn btn-sm" onclick="applySimPreset('rice')">Arroz lámina baja</button>
+                  <button class="btn btn-danger btn-sm" onclick="applySimPreset('fault')">Fallo sensor</button>
+                </div>
+                <button class="btn btn-primary" style="width:100%;" onclick="executeSimulation()">Ejecutar Simulación</button>
+              </div>
+
+              <div class="panel">
+                <h3>Resultado y Pronóstico (1h – 24h)</h3>
+                <div id="simResultBox" class="panel-elevated" style="margin-bottom:0.9rem;">Ajusta los controles y presiona «Ejecutar Simulación» para ver qué decide la IA.</div>
+                <div class="chart-box"><canvas id="simForecastChart"></canvas></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub-tab 3: Zone Settings -->
+          <div class="sub-panel" id="sub-irrigation-settings">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Ajustes de Riego por Zona</h2>
+                  <p class="panel-sub">Los cambios se guardan directo en la base de datos SQLite</p>
+                </div>
+              </div>
+              <div class="grid-2" style="max-width:720px;">
+                <div class="form-row"><label for="cfgZone">Zona</label><select id="cfgZone"></select></div>
+                <div class="form-row"><label for="cfgOptMin">Humedad mínima ideal (%)</label><input type="number" id="cfgOptMin" value="24.2" step="0.5" /></div>
+                <div class="form-row"><label for="cfgHyst">Margen extra antes de parar (%)</label><input type="number" id="cfgHyst" value="3.5" step="0.5" /></div>
+                <div class="form-row"><label for="cfgCooldown">Pausa mínima entre riegos (min)</label><input type="number" id="cfgCooldown" value="90" /></div>
+                <div class="form-row"><label for="cfgMaxDur">Duración máxima continua (min)</label><input type="number" id="cfgMaxDur" value="25" /></div>
+              </div>
+              <button class="btn btn-primary" onclick="saveZoneSettings()">Guardar Cambios</button>
+              <div id="cfgFeedback" style="margin-top:0.75rem; font-size:0.84rem; color:var(--accent-botanical);"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 5. ARTIFICIAL INTELLIGENCE ==================== -->
+        <section class="view-panel" id="view-ai">
+          <div class="sub-tabs" role="tablist" aria-label="Secciones de Inteligencia Artificial">
+            <button class="sub-tab active" data-sub="sub-ai-predict" onclick="switchSubTab('ai', 'sub-ai-predict')">Probar IA</button>
+            <button class="sub-tab" data-sub="sub-ai-metrics" onclick="switchSubTab('ai', 'sub-ai-metrics')">Métricas y Gráficas</button>
+          </div>
+
+          <!-- Sub-tab 1: Interactive AI Predictor (default) -->
+          <div class="sub-panel active" id="sub-ai-predict">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Predictor Interactivo de Humedad</h2>
+                  <p class="panel-sub">Prueba qué predice el modelo entrenado con datos reales (EcoIrrigate) para las próximas 24 horas</p>
+                </div>
+              </div>
+              <div class="grid-2" style="max-width:760px;">
+                <div class="form-row"><label for="aiPredCrop">Cultivo</label><select id="aiPredCrop"></select></div>
+                <div class="form-row"><label for="aiPredStage">Etapa</label><select id="aiPredStage"><option value="inicial">Inicial</option><option value="desarrollo">Desarrollo</option><option value="medio" selected>Media</option><option value="final">Final</option></select></div>
+                <div class="form-row"><label for="aiPredAdc">Lectura sensor ADC (0=Seco · 800=Húmedo)</label><input type="number" id="aiPredAdc" value="200" min="0" max="1015" /></div>
+                <div class="form-row"><label for="aiPredTemp">Temperatura aire (°C)</label><input type="number" id="aiPredTemp" value="29.0" step="0.5" /></div>
+              </div>
+              <button class="btn btn-hydro" onclick="runAiPreview()">Calcular Pronóstico</button>
+              <div id="aiPredOutput" class="panel-elevated" style="margin-top:0.95rem; font-size:0.86rem;">Presiona «Calcular Pronóstico» para ver la humedad esperada a +1h, +6h, +12h y +24h y la explicación agronómica.</div>
+            </div>
+          </div>
+
+          <!-- Sub-tab 2: Model Metrics & Evidence Plots -->
+          <div class="sub-panel" id="sub-ai-metrics">
+            <div class="panel" style="margin-bottom:1.15rem;">
+              <div class="panel-header">
+                <div>
+                  <h2>Resultados de Entrenamiento (Dataset EcoIrrigate)</h2>
+                  <p class="panel-sub">División cronológica estricta con purga de 24 h sin fuga temporal (Seed = 42)</p>
+                </div>
+              </div>
+              <div class="table-scroll">
+                <table id="aiBestModelsTable">
+                  <thead><tr><th>Tarea</th><th>Modelo Ganador</th><th>Val RMSE</th><th>Test MAE</th><th>Test RMSE</th><th>Test R²</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-bottom:1.15rem;">
+              <h3>Comparación RMSE por Horizonte</h3>
+              <div class="chart-box"><canvas id="aiComparisonChart"></canvas></div>
+            </div>
+
+            <div class="grid-2">
+              <div class="panel"><h3>Predicción vs Real (Test 6h)</h3><img class="img-evidence" src="/ai-reports/prediction_vs_actual.png" alt="Gráfico real predicción vs valor actual 6h" /></div>
+              <div class="panel"><h3>Importancia de Variables (Test 6h)</h3><img class="img-evidence" src="/ai-reports/feature_importance.png" alt="Importancia de variables por permutación" /></div>
+              <div class="panel"><h3>Análisis de Residuos (Test 6h)</h3><img class="img-evidence" src="/ai-reports/residuals_analysis.png" alt="Distribución y residuos del modelo 6h" /></div>
+              <div class="panel"><h3>Evolución Histórica EcoIrrigate</h3><img class="img-evidence" src="/ai-reports/moisture_evolution.png" alt="Serie temporal histórica EcoIrrigate" /></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 6. ALERTS & REPORTS ==================== -->
+        <section class="view-panel" id="view-alerts">
+          <div class="sub-tabs" role="tablist" aria-label="Alertas y Reportes">
+            <button class="sub-tab active" data-sub="sub-alerts-list" onclick="switchSubTab('alerts', 'sub-alerts-list')">Alertas</button>
+            <button class="sub-tab" data-sub="sub-alerts-reports" onclick="switchSubTab('alerts', 'sub-alerts-reports')">Reportes CSV / PDF</button>
+          </div>
+
+          <!-- Sub-tab 1: Alerts -->
+          <div class="sub-panel active" id="sub-alerts-list">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Centro de Alertas</h2>
+                  <p class="panel-sub">Eventos de humedad, sensores o límites de seguridad</p>
+                </div>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                  <select id="alertFilterSev" onchange="loadAlerts()"><option value="all">Todas</option><option value="CRITICAL">Críticas</option><option value="WARNING">Advertencias</option><option value="INFO">Info</option></select>
+                  <select id="alertFilterOrigin" onchange="loadAlerts()"><option value="all">Todos los orígenes</option><option value="real">Datos Reales</option><option value="simulated">Simulación / Tinkercad</option></select>
+                  <select id="alertFilterStatus" onchange="loadAlerts()"><option value="all">Todos los estados</option><option value="ACTIVE">Activas</option><option value="ACKNOWLEDGED">Vistas</option><option value="RESOLVED">Resueltas</option></select>
+                  <button class="btn btn-primary btn-sm" onclick="resolveAllVisibleAlerts()">Resolver todas visibles</button>
+                </div>
+              </div>
+              <div id="alertsListHost"></div>
+            </div>
+          </div>
+
+          <!-- Sub-tab 2: Reports CSV / PDF -->
+          <div class="sub-panel" id="sub-alerts-reports">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Reportes de Eficiencia Hídrica</h2>
+                  <p class="panel-sub">Descarga la evidencia en CSV o el informe académico en PDF</p>
+                </div>
+                <div style="display:flex; gap:0.55rem; flex-wrap:wrap;">
+                  <a class="btn btn-hydro" href="/api/reports/export/csv" download="agroriego_telemetry_report.csv">Descargar CSV</a>
+                  <a class="btn btn-primary" href="/api/reports/export/pdf" download="AgroRiego_AI_Water_Efficiency_Report.pdf">Descargar PDF</a>
+                </div>
+              </div>
+              <div id="reportsSummaryHost"></div>
+              <div class="chart-box" style="margin-top:1rem;"><canvas id="reportsChart"></canvas></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 7. DATASETS & REFERENCES ==================== -->
+        <section class="view-panel" id="view-datasets">
+          <div class="panel" style="margin-bottom:1.15rem;">
+            <h2>Procedencia de Datasets y Verificación SHA-256</h2>
+            <div class="table-scroll">
+              <table id="datasetsTable">
+                <thead><tr><th>ID</th><th>Título</th><th>Autores</th><th>DOI</th><th>Licencia</th><th>Registros</th><th>SHA-256 / Estado</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="panel"><h3>Referencias APA 7</h3><pre id="apaBox" style="white-space:pre-wrap; overflow-wrap:anywhere; font-family:var(--font-sans); font-size:0.83rem; color:var(--text-secondary);"></pre></div>
+            <div class="panel"><h3>BibTeX</h3><pre id="bibBox" class="mono" style="white-space:pre-wrap; overflow-wrap:anywhere; font-size:0.78rem; color:#93c5fd;"></pre></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="/assets/app.js?v=6"></script>
+</body>
+</html>

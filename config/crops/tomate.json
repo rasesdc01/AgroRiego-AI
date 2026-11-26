@@ -1,0 +1,58 @@
+{
+  "crop_id": "tomate",
+  "common_name": "Tomate",
+  "scientific_name": "Solanum lycopersicum",
+  "family": "Solanaceae",
+  "irrigation_regime": "upland_drip_deficit_controlled",
+  "soil_texture_recommended": "Franco a franco-arenoso, bien drenado, pH 6.0-6.8",
+  "root_depth_m": {
+    "inicial": 0.30,
+    "desarrollo": 0.65,
+    "medio": 1.00,
+    "final": 1.00
+  },
+  "soil_hydrology_vwc_pct": {
+    "saturation_vwc_pct": 46.0,
+    "field_capacity_vwc_pct": 31.0,
+    "wilting_point_vwc_pct": 14.0,
+    "optimal_min_vwc_pct": 24.2,
+    "optimal_max_vwc_pct": 30.5,
+    "critical_stress_vwc_pct": 20.5,
+    "excess_moisture_vwc_pct": 37.0
+  },
+  "readily_available_water_fraction_p": 0.40,
+  "kc_by_stage": {
+    "inicial": 0.60,
+    "desarrollo": 0.88,
+    "medio": 1.15,
+    "final": 0.80
+  },
+  "stage_durations_days": {
+    "inicial": 30,
+    "desarrollo": 40,
+    "medio": 45,
+    "final": 30
+  },
+  "et0_reference_mm_day": 4.5,
+  "ambient_conditions": {
+    "optimal_air_temp_c": [20.0, 27.0],
+    "ambient_relative_humidity_range_pct": [60.0, 75.0]
+  },
+  "control_parameters": {
+    "hysteresis_band_pct": 3.5,
+    "min_cooldown_minutes": 90,
+    "max_irrigation_duration_minutes": 25,
+    "nominal_flow_liters_per_min": 2.4
+  },
+  "monitored_variables": [
+    "soil_moisture_pct",
+    "soil_temperature_c",
+    "air_temperature_c",
+    "relative_humidity_pct",
+    "etc_mm_day"
+  ],
+  "sources": [
+    "Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). FAO Irrigation and Drainage Paper No. 56 (Table 12, p. 110; Table 22, p. 163).",
+    "INTA Costa Rica. (2019). Manual técnico del cultivo de tomate bajo ambiente protegido."
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "project": "AgroRiego AI",
+  "generated_at": "2026-11-17T23:16:00-06:00",
+  "primary_dataset": {
+    "dataset_id": "ecoirrigate_kolkata_2025",
+    "title": "EcoIrrigate: Multi-Sensor Soil Moisture Monitoring Dataset from Kolkata, India (Jan–Apr 2025)",
+    "authors": [
+      "Saha, Soham",
+      "Kar, Subhojit",
+      "Ghosh, Arijeet",
+      "Bhattacharjee, Sohan",
+      "Sanyal, Somes",
+      "Das, Avik Kumar"
+    ],
+    "year": 2026,
+    "repository": "Mendeley Data / Official Author GitHub Repository (spyder0010/EcoIrrigate)",
+    "doi": "10.17632/8x4v7yy3ds.1",
+    "doi_url": "https://data.mendeley.com/datasets/8x4v7yy3ds/1",
+    "raw_source_url": "https://github.com/spyder0010/EcoIrrigate/tree/main/New_Dataset",
+    "version": "1",
+    "license": "CC BY 4.0 International",
+    "downloaded_at": "2026-11-17T23:14:00-06:00",
+    "total_records": 21312,
+    "sampling_interval_minutes": 15,
+    "duration_days": 110,
+    "locations": ["Kolkata_Farm_1", "Kolkata_Farm_2"],
+    "crops_explicitly_labeled_in_dataset": false,
+    "crops_note": "Dataset records physical soil moisture and environmental sensor dynamics without explicit crop taxonomy labels; used to train Model 1 (ADC calibration) and Model 2 (soil moisture forecasting) while FAO-56 agronomic crop profiles provide crop-specific decision context.",
+    "files": [
+      {
+        "filename": "kolkata_unified_dataset.csv",
+        "size_bytes": 4182231,
+        "sha256": "9368994b4b70b48b3f953bdfe757b5481e5568764c49be4d4a4029a868ba7799"
+      },
+      {
+        "filename": "daily_pressure_extracted.csv",
+        "size_bytes": 2184,
+        "sha256": "43fbd2cc9fad57a29b55f10cb7318d0a749f6d7841311dc6fbd967cd2bd101b3"
+      },
+      {
+        "filename": "daily_temperature_extracted.csv",
+        "size_bytes": 2444,
+        "sha256": "3ade615bb6675646c3cd549829dd2bddc9471b7eec5934c01f69cf762de6fe6a"
+      },
+      {
+        "filename": "DATA_DICTIONARY.md",
+        "size_bytes": 3314,
+        "sha256": "deb2199f9944e5bf5bc6ec7f636200c328ee001401589f9eb2ef833f82d5d784"
+      },
+      {
+        "filename": "QUALITY_REPORT.json",
+        "size_bytes": 1608,
+        "sha256": "db9d843e676bd52188c7731634af92307bd5203b3d4879344ae1bacd957901d6"
+      }
+    ]
+  },
+  "referenced_candidate_datasets": [
+    {
+      "dataset_id": "adamo_multisector_2026",
+      "title": "Soil Moisture, Irrigation Actuator and Weather Dataset from a Multi-Sector Precision-Irrigation",
+      "authors": ["Adamo, Tommaso", "Colizzi, Lucio", "Dimauro, Giovanni", "Guerriero, Emanuela", "Lomonte, Nunzia"],
+      "year": 2026,
+      "repository": "Mendeley Data",
+      "doi": "10.17632/c837v6p8ph.2",
+      "url": "https://data.mendeley.com/datasets/c837v6p8ph/2",
+      "version": "2",
+      "license": "CC BY 4.0 International",
+      "status": "Metadata verified via DataCite API; bulk ZIP download blocked (HTTP 403) without browser session — cited as agronomic/multi-sector architectural reference."
+    },
+    {
+      "dataset_id": "howlader_lstm_gardening_2026",
+      "title": "Environmental Sensor Dataset for LSTM-Based Predictive Irrigation in Smart Home Gardening Using Edge IoT",
+      "authors": ["Howlader, Md Nazmul", "Priyanka, Fatema Tuz Zohora"],
+      "year": 2026,
+      "repository": "Mendeley Data",
+      "doi": "10.17632/jtsyb593fy.1",
+      "url": "https://data.mendeley.com/datasets/jtsyb593fy/1",
+      "version": "1",
+      "license": "CC BY 4.0 International",
+      "status": "Metadata verified via DataCite API; bulk ZIP download blocked (HTTP 403) without browser session — cited for multi-horizon IoT edge telemetry comparison."
+    }
+  ]
+}

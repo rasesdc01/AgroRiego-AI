@@ -1,0 +1,58 @@
+{
+  "crop_id": "frijol",
+  "common_name": "Frijol",
+  "scientific_name": "Phaseolus vulgaris",
+  "family": "Fabaceae",
+  "irrigation_regime": "upland_anti_waterlogging_drip",
+  "soil_texture_recommended": "Franco a franco-arenoso suelto, excelente drenaje (alta sensibilidad a anoxia), pH 6.0-6.8",
+  "root_depth_m": {
+    "inicial": 0.25,
+    "desarrollo": 0.45,
+    "medio": 0.70,
+    "final": 0.70
+  },
+  "soil_hydrology_vwc_pct": {
+    "saturation_vwc_pct": 45.0,
+    "field_capacity_vwc_pct": 29.0,
+    "wilting_point_vwc_pct": 13.0,
+    "optimal_min_vwc_pct": 21.8,
+    "optimal_max_vwc_pct": 28.5,
+    "critical_stress_vwc_pct": 18.5,
+    "excess_moisture_vwc_pct": 33.5
+  },
+  "readily_available_water_fraction_p": 0.45,
+  "kc_by_stage": {
+    "inicial": 0.40,
+    "desarrollo": 0.78,
+    "medio": 1.15,
+    "final": 0.35
+  },
+  "stage_durations_days": {
+    "inicial": 15,
+    "desarrollo": 25,
+    "medio": 35,
+    "final": 20
+  },
+  "et0_reference_mm_day": 4.4,
+  "ambient_conditions": {
+    "optimal_air_temp_c": [18.0, 26.0],
+    "ambient_relative_humidity_range_pct": [60.0, 75.0]
+  },
+  "control_parameters": {
+    "hysteresis_band_pct": 3.5,
+    "min_cooldown_minutes": 120,
+    "max_irrigation_duration_minutes": 20,
+    "nominal_flow_liters_per_min": 2.0
+  },
+  "monitored_variables": [
+    "soil_moisture_pct",
+    "soil_temperature_c",
+    "air_temperature_c",
+    "relative_humidity_pct",
+    "etc_mm_day"
+  ],
+  "sources": [
+    "Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). FAO Irrigation and Drainage Paper No. 56 (Table 12, p. 111; Table 22, p. 163).",
+    "INTA Costa Rica. (2018). Guía técnica para el cultivo de frijol común en Costa Rica."
+  ]
+}

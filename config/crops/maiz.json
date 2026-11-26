@@ -1,0 +1,58 @@
+{
+  "crop_id": "maiz",
+  "common_name": "Maíz",
+  "scientific_name": "Zea mays",
+  "family": "Poaceae",
+  "irrigation_regime": "upland_stage_critical_furrow_or_drip",
+  "soil_texture_recommended": "Franco a franco-limoso profundo, pH 5.8-7.0",
+  "root_depth_m": {
+    "inicial": 0.30,
+    "desarrollo": 0.70,
+    "medio": 1.20,
+    "final": 1.20
+  },
+  "soil_hydrology_vwc_pct": {
+    "saturation_vwc_pct": 47.0,
+    "field_capacity_vwc_pct": 32.0,
+    "wilting_point_vwc_pct": 15.0,
+    "optimal_min_vwc_pct": 22.6,
+    "optimal_max_vwc_pct": 31.5,
+    "critical_stress_vwc_pct": 19.5,
+    "excess_moisture_vwc_pct": 39.0
+  },
+  "readily_available_water_fraction_p": 0.55,
+  "kc_by_stage": {
+    "inicial": 0.30,
+    "desarrollo": 0.75,
+    "medio": 1.20,
+    "final": 0.50
+  },
+  "stage_durations_days": {
+    "inicial": 20,
+    "desarrollo": 35,
+    "medio": 40,
+    "final": 30
+  },
+  "et0_reference_mm_day": 5.0,
+  "ambient_conditions": {
+    "optimal_air_temp_c": [22.0, 30.0],
+    "ambient_relative_humidity_range_pct": [55.0, 75.0]
+  },
+  "control_parameters": {
+    "hysteresis_band_pct": 4.0,
+    "min_cooldown_minutes": 120,
+    "max_irrigation_duration_minutes": 30,
+    "nominal_flow_liters_per_min": 3.5
+  },
+  "monitored_variables": [
+    "soil_moisture_pct",
+    "soil_temperature_c",
+    "air_temperature_c",
+    "relative_humidity_pct",
+    "etc_mm_day"
+  ],
+  "sources": [
+    "Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). FAO Irrigation and Drainage Paper No. 56 (Table 12, p. 112; Table 22, p. 164).",
+    "INEC Costa Rica. (2025). Encuesta Nacional Agropecuaria (ENA) 2024."
+  ]
+}

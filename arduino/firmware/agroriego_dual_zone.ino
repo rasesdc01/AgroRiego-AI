@@ -1,228 +1,204 @@
 /*
- * AgroRiego AI — Firmware Arduino Uno R3 (Dos Zonas Independientes)
- * Curso: Arquitectura y Organización de Computadores (UIA)
- *
- * Descripción:
- *   Controlador embebido de riego de precisión de dos zonas independientes con
- *   Sensores de Humedad de Suelo SparkFun (Tinkercad) en modo 100% comandado por IA:
- *   - Zona 1: Sensor de humedad SparkFun en A0, Etapa de potencia bomba en D8,
- *             LED bomba activa en D4, LED alerta/fallo en D5.
- *   - Zona 2: Sensor de humedad SparkFun en A1, Etapa de potencia bomba en D9,
- *             LED bomba activa en D6, LED alerta/fallo en D7.
- *   - Modo Estricto IA (MODE_AI por defecto): El Arduino NO enciende ninguna bomba por sí mismo;
- *     reporta telemetría JSON y solo activa o apaga los motores al recibir los comandos de la IA
- *     (Z1:PUMP=1/0, Z2:PUMP=1/0). MODE_AUTO queda disponible vía serial como respaldo local.
- *   - Escala SparkFun: 0 ADC = 5.0% VWC (suelo seco), 800 ADC = 45.0% VWC (saturado).
- *     Fallo de sensor únicamente cuando raw > 1015 (circuito abierto).
- *   - Protección Hardware: Las bombas DC NUNCA se conectan directo a GPIO; se conmutan
- *     mediante transistor NPN (2N2222/TIP120) con resistencia de base de 1 kOhm
- *     y diodo de retorno (flyback) 1N4007 en antiparalelo sobre la carga inductiva.
- *   - Seguridad Firmware: Guardas deterministas de hardware (> 1015), enfriamiento (cooldown)
- *     y corte máximo continuo (90 s) con protocolo serial JSON bidireccional.
+ * AgroRiego - Proyecto Arquitectura y Organizacion de Computadores
+ * Control de riego para 2 zonas independientes con Arduino Uno
  */
 
-// ======================= CONFIGURACIÓN DE PINES =======================
+// Pines de conexion
 const int PIN_SENSOR_Z1 = A0;
 const int PIN_SENSOR_Z2 = A1;
 
-const int PIN_PUMP_Z1   = 8;   // Hacia base de transistor Q1 (1k Ohm)
-const int PIN_PUMP_Z2   = 9;   // Hacia base de transistor Q2 (1k Ohm)
+const int PIN_BOMBA_Z1 = 8;
+const int PIN_BOMBA_Z2 = 9;
 
-const int PIN_LED_PUMP_Z1  = 4;
-const int PIN_LED_FAULT_Z1 = 5;
-const int PIN_LED_PUMP_Z2  = 6;
-const int PIN_LED_FAULT_Z2 = 7;
-const int PIN_HEARTBEAT    = 13;
+const int PIN_LED_BOMBA_Z1 = 4;
+const int PIN_LED_FALLA_Z1 = 5;
+const int PIN_LED_BOMBA_Z2 = 6;
+const int PIN_LED_FALLA_Z2 = 7;
+const int PIN_HEARTBEAT = 13;
 
-// ======================= PARÁMETROS DE SEGURIDAD ======================
-const int RAW_FAULT_LOW  = -1;     // Con sensor de humedad SparkFun, 0 es suelo 100% seco (válido)
-const int RAW_FAULT_HIGH = 1015;   // Sensor desconectado / circuito abierto
+// Constantes de seguridad y calibracion del sensor
+const int SENSOR_DESCONECTADO = 1015; // si pasa de esto el sensor esta en circuito abierto
+const unsigned long INTERVALO_LECTURA = 1000;  // cada 1 seg
+const unsigned long TIEMPO_COOLDOWN = 2000;    // espera minima entre riegos (2s para pruebas)
+const unsigned long TIEMPO_MAX_RIEGO = 90000;  // maximo 90s continuos de bomba
 
-// Calibración para Sensor de Humedad de Suelo (SparkFun Soil Moisture en Tinkercad)
-// En Tinkercad: 0 ADC = Suelo Seco (0V) -> 5.0% VWC
-//               800 ADC = Suelo Saturado de agua (~4.2V) -> 45.0% VWC
-const int ADC_DRY_CAL = 0;         // ~5% VWC suelo muy seco
-const int ADC_WET_CAL = 800;       // ~45% VWC saturado/húmedo
+// Modos de trabajo
+const int MODO_AUTO = 0;
+const int MODO_AI = 1;      // por defecto controlado desde la IA
+const int MODO_MONITOR = 2;
 
-const unsigned long SAMPLE_INTERVAL_MS   = 1000;   // Lectura rápida cada 1 s
-const unsigned long MIN_COOLDOWN_MS      = 2000;   // Espera mínima demo 2 s
-const unsigned long MAX_PUMP_RUNTIME_MS  = 90000;  // Límite continuo de seguridad (demo 90s)
-
-// ======================= MODOS Y ESTRUCTURA ===========================
-const int MODE_AUTO    = 0;  // Respaldo autónomo opcional (solo si se envía MODE=AUTO)
-const int MODE_AI      = 1;  // Modo estricto 100% comandado por IA (por defecto)
-const int MODE_MONITOR = 2;
-
-struct IrrigationZone {
-  const char* zoneId;
+// Estructura para agrupar los datos de cada zona
+struct Zona {
+  char id[8];
   int pinSensor;
-  int pinPump;
-  int pinLedPump;
-  int pinLedFault;
+  int pinBomba;
+  int pinLedBomba;
+  int pinLedFalla;
 
-  float lowThresholdPct;     // Umbral inferior FAO-56 para encender bomba
-  float highThresholdPct;    // Umbral superior para apagar (histéresis)
+  float umbralBajo;
+  float umbralAlto;
 
-  int lastRaw;
-  float lastMoisturePct;
-  bool pumpActive;
-  bool sensorFault;
-  bool safetyCutoffTriggered;
-  int mode;
-  bool manualRequestedState;
-  bool manualOverrideActive;
+  int valorRaw;
+  float humedad;
+  bool bombaPrendida;
+  bool errorSensor;
+  bool corteSeguridad;
+  int modo;
+  bool ordenBombaManual;
 
-  unsigned long pumpStartTimeMs;
-  unsigned long lastPumpStopTimeMs;
-  unsigned long currentRuntimeMs;
+  unsigned long inicioRiego;
+  unsigned long finRiego;
+  unsigned long tiempoRiegoActual;
 };
 
-IrrigationZone zones[2] = {
-  {"zone_01", PIN_SENSOR_Z1, PIN_PUMP_Z1, PIN_LED_PUMP_Z1, PIN_LED_FAULT_Z1, 24.2f, 27.7f, 0, 0.0f, false, false, false, MODE_AI, false, false, 0, 0, 0},
-  {"zone_02", PIN_SENSOR_Z2, PIN_PUMP_Z2, PIN_LED_PUMP_Z2, PIN_LED_FAULT_Z2, 24.9f, 27.4f, 0, 0.0f, false, false, false, MODE_AI, false, false, 0, 0, 0}
+// Inicializamos las dos zonas (valores por defecto)
+Zona zonas[2] = {
+  {"zone_01", PIN_SENSOR_Z1, PIN_BOMBA_Z1, PIN_LED_BOMBA_Z1, PIN_LED_FALLA_Z1, 24.2, 27.7, 0, 0.0, false, false, false, MODO_AI, false, 0, 0, 0},
+  {"zone_02", PIN_SENSOR_Z2, PIN_BOMBA_Z2, PIN_LED_BOMBA_Z2, PIN_LED_FALLA_Z2, 24.9, 27.4, 0, 0.0, false, false, false, MODO_AI, false, 0, 0, 0}
 };
 
-unsigned long lastSampleMs = 0;
-unsigned long lastSerialCharMs = 0;
-String serialRxBuffer = "";
+unsigned long tiempoUltimaLectura = 0;
+unsigned long tiempoUltimoCaracter = 0;
+String bufferSerial = "";
 
-// Convierte lectura ADC 10-bit en humedad volumétrica interpretable (%)
-// Compatible con sensor de humedad SparkFun de Tinkercad (0 = seco, 800 = húmedo)
-float calibrateAdcToMoisturePct(int rawAdc) {
-  int clamped = constrain(rawAdc, 0, 850);
-  float pct = 5.0f + ((float)clamped / 800.0f) * 40.0f;
-  return constrain(pct, 0.0f, 100.0f);
+// Conversion del ADC a porcentaje aproximado de humedad
+float calcularHumedad(int raw) {
+  int valor = constrain(raw, 0, 850);
+  float porcentaje = 5.0 + ((float)valor / 800.0) * 40.0;
+  return constrain(porcentaje, 0.0, 100.0);
 }
 
-// Lee el promedio de 5 muestras para filtrar ruido analógico
-int readFilteredAdc(int pin) {
-  long sum = 0;
+// Promedio de 5 lecturas para que no baile tanto el valor
+int leerSensorPromedio(int pin) {
+  long suma = 0;
   for (int i = 0; i < 5; i++) {
-    sum += analogRead(pin);
+    suma += analogRead(pin);
     delay(2);
   }
-  return (int)(sum / 5);
+  return suma / 5;
 }
 
-// Aplica salidas físicas a pines de bomba y LEDs respetando estado seguro
-void applyHardwareOutputs(int zIdx) {
-  IrrigationZone& z = zones[zIdx];
-  if (z.sensorFault || z.safetyCutoffTriggered) {
-    z.pumpActive = false;
+// Actualiza los pines fisicos (reles/transistores y leds)
+void actualizarSalidas(int i) {
+  // si hay algun error la bomba no puede estar encendida
+  if (zonas[i].errorSensor || zonas[i].corteSeguridad) {
+    zonas[i].bombaPrendida = false;
   }
-  digitalWrite(z.pinPump, z.pumpActive ? HIGH : LOW);
-  digitalWrite(z.pinLedPump, z.pumpActive ? HIGH : LOW);
-  digitalWrite(z.pinLedFault, (z.sensorFault || z.safetyCutoffTriggered) ? HIGH : LOW);
+  digitalWrite(zonas[i].pinBomba, zonas[i].bombaPrendida ? HIGH : LOW);
+  digitalWrite(zonas[i].pinLedBomba, zonas[i].bombaPrendida ? HIGH : LOW);
+  digitalWrite(zonas[i].pinLedFalla, (zonas[i].errorSensor || zonas[i].corteSeguridad) ? HIGH : LOW);
 }
 
-// Evalúa una zona independiente con histéresis, cooldown y límites de seguridad
-void evaluateZone(int zIdx, unsigned long nowMs) {
-  IrrigationZone& z = zones[zIdx];
-  z.lastRaw = readFilteredAdc(z.pinSensor);
+// Logica de control de cada zona
+void revisarZona(int i, unsigned long ahora) {
+  zonas[i].valorRaw = leerSensorPromedio(zonas[i].pinSensor);
 
-  // 1. Verificación de integridad de sensor
-  if (z.lastRaw < RAW_FAULT_LOW || z.lastRaw > RAW_FAULT_HIGH) {
-    z.sensorFault = true;
-    z.lastMoisturePct = -1.0f;
-    z.manualRequestedState = false;
-    if (z.pumpActive) {
-      z.pumpActive = false;
-      z.lastPumpStopTimeMs = nowMs;
-      z.currentRuntimeMs = 0;
+  // 1. Ver si el sensor esta fallando o desconectado
+  if (zonas[i].valorRaw > SENSOR_DESCONECTADO) {
+    zonas[i].errorSensor = true;
+    zonas[i].humedad = -1.0;
+    zonas[i].ordenBombaManual = false;
+    if (zonas[i].bombaPrendida) {
+      zonas[i].bombaPrendida = false;
+      zonas[i].finRiego = ahora;
+      zonas[i].tiempoRiegoActual = 0;
     }
-    applyHardwareOutputs(zIdx);
+    actualizarSalidas(i);
     return;
   } else {
-    z.sensorFault = false;
+    zonas[i].errorSensor = false;
   }
 
-  z.lastMoisturePct = calibrateAdcToMoisturePct(z.lastRaw);
+  zonas[i].humedad = calcularHumedad(zonas[i].valorRaw);
 
-  // Auto-recuperación de safety cutoff si el sensor alcanza humedad óptima (>= highThresholdPct)
-  if (z.safetyCutoffTriggered && (z.lastMoisturePct >= z.highThresholdPct)) {
-    z.safetyCutoffTriggered = false;
+  // Si la humedad ya subio al nivel optimo, quitamos la alerta de seguridad
+  if (zonas[i].corteSeguridad && (zonas[i].humedad >= zonas[i].umbralAlto)) {
+    zonas[i].corteSeguridad = false;
   }
 
-  // 2. Verificación de tiempo máximo de riego continuo (Safety Cutoff)
-  if (z.pumpActive) {
-    z.currentRuntimeMs = nowMs - z.pumpStartTimeMs;
-    if (z.currentRuntimeMs >= MAX_PUMP_RUNTIME_MS) {
-      z.pumpActive = false;
-      z.safetyCutoffTriggered = true;
-      z.manualRequestedState = false;
-      z.lastPumpStopTimeMs = nowMs;
-      z.currentRuntimeMs = 0;
-      applyHardwareOutputs(zIdx);
+  // 2. Proteccion por tiempo maximo de bomba encendida
+  if (zonas[i].bombaPrendida) {
+    zonas[i].tiempoRiegoActual = ahora - zonas[i].inicioRiego;
+    if (zonas[i].tiempoRiegoActual >= TIEMPO_MAX_RIEGO) {
+      zonas[i].bombaPrendida = false;
+      zonas[i].corteSeguridad = true;
+      zonas[i].ordenBombaManual = false;
+      zonas[i].finRiego = ahora;
+      zonas[i].tiempoRiegoActual = 0;
+      actualizarSalidas(i);
       return;
     }
   } else {
-    z.currentRuntimeMs = 0;
+    zonas[i].tiempoRiegoActual = 0;
   }
 
-  // 3. Control según modo de operación
-  bool cooldownOk = (z.lastPumpStopTimeMs == 0) || ((nowMs - z.lastPumpStopTimeMs) >= MIN_COOLDOWN_MS);
+  // 3. Control segun el modo seleccionado
+  bool descansoOk = (zonas[i].finRiego == 0) || ((ahora - zonas[i].finRiego) >= TIEMPO_COOLDOWN);
 
-  if (z.mode == MODE_MONITOR) {
-    z.manualRequestedState = false;
-    if (z.pumpActive) {
-      z.pumpActive = false;
-      z.lastPumpStopTimeMs = nowMs;
+  if (zonas[i].modo == MODO_MONITOR) {
+    zonas[i].ordenBombaManual = false;
+    if (zonas[i].bombaPrendida) {
+      zonas[i].bombaPrendida = false;
+      zonas[i].finRiego = ahora;
     }
-  } else if (z.mode == MODE_AI) {
-    // Modo estricto comandado por IA: Arduino NUNCA enciende la bomba solo;
-    // únicamente ejecuta las órdenes Zx:PUMP=1 / Zx:PUMP=0 enviadas por la IA.
-    if (z.manualRequestedState && !z.pumpActive && cooldownOk && !z.safetyCutoffTriggered) {
-      z.pumpActive = true;
-      z.pumpStartTimeMs = nowMs;
-    } else if (!z.manualRequestedState && z.pumpActive) {
-      z.pumpActive = false;
-      z.lastPumpStopTimeMs = nowMs;
+  } 
+  else if (zonas[i].modo == MODO_AI) {
+    // Modo IA: la bomba solo se mueve si la IA manda el comando
+    if (zonas[i].ordenBombaManual && !zonas[i].bombaPrendida && descansoOk && !zonas[i].corteSeguridad) {
+      zonas[i].bombaPrendida = true;
+      zonas[i].inicioRiego = ahora;
+    } else if (!zonas[i].ordenBombaManual && zonas[i].bombaPrendida) {
+      zonas[i].bombaPrendida = false;
+      zonas[i].finRiego = ahora;
     }
-  } else {
-    // Respaldo opcional MODE_AUTO por histéresis local (solo si se solicita por serial)
-    if (!z.pumpActive && cooldownOk && !z.safetyCutoffTriggered && (z.lastMoisturePct < z.lowThresholdPct)) {
-      z.pumpActive = true;
-      z.pumpStartTimeMs = nowMs;
-    } else if (z.pumpActive && (z.lastMoisturePct >= z.highThresholdPct)) {
-      z.pumpActive = false;
-      z.lastPumpStopTimeMs = nowMs;
+  } 
+  else {
+    // Modo AUTO: control local con umbrales por histeresis
+    if (!zonas[i].bombaPrendida && descansoOk && !zonas[i].corteSeguridad && (zonas[i].humedad < zonas[i].umbralBajo)) {
+      zonas[i].bombaPrendida = true;
+      zonas[i].inicioRiego = ahora;
+    } else if (zonas[i].bombaPrendida && (zonas[i].humedad >= zonas[i].umbralAlto)) {
+      zonas[i].bombaPrendida = false;
+      zonas[i].finRiego = ahora;
     }
   }
 
-  applyHardwareOutputs(zIdx);
+  actualizarSalidas(i);
 }
 
-// Emite trama JSON estructurada hacia el Backend / Monitor Serial
-void publishZoneTelemetry(int zIdx, unsigned long nowMs) {
-  const IrrigationZone& z = zones[zIdx];
-  bool cooldownActive = (!z.pumpActive && z.lastPumpStopTimeMs > 0 && (nowMs - z.lastPumpStopTimeMs) < MIN_COOLDOWN_MS);
-  const char* modeStr = (z.mode == MODE_AUTO) ? "AUTO" : ((z.mode == MODE_AI) ? "AI" : "MONITOR");
+// Imprime por serial el JSON que espera el backend de Python
+void enviarTelemetria(int i, unsigned long ahora) {
+  bool descansoActivo = (!zonas[i].bombaPrendida && zonas[i].finRiego > 0 && (ahora - zonas[i].finRiego) < TIEMPO_COOLDOWN);
+  
+  String nombreModo = "AI";
+  if (zonas[i].modo == MODO_AUTO) nombreModo = "AUTO";
+  else if (zonas[i].modo == MODO_MONITOR) nombreModo = "MONITOR";
 
   Serial.print("{\"timestamp_ms\":");
-  Serial.print(nowMs);
+  Serial.print(ahora);
   Serial.print(",\"zone\":\"");
-  Serial.print(z.zoneId);
+  Serial.print(zonas[i].id);
   Serial.print("\",\"raw\":");
-  Serial.print(z.lastRaw);
+  Serial.print(zonas[i].valorRaw);
   Serial.print(",\"moisture_pct\":");
-  Serial.print(z.lastMoisturePct, 2);
+  Serial.print(zonas[i].humedad, 2);
   Serial.print(",\"pump\":");
-  Serial.print(z.pumpActive ? "true" : "false");
+  Serial.print(zonas[i].bombaPrendida ? "true" : "false");
   Serial.print(",\"fault\":");
-  Serial.print(z.sensorFault ? "true" : "false");
+  Serial.print(zonas[i].errorSensor ? "true" : "false");
   Serial.print(",\"safety_cutoff\":");
-  Serial.print(z.safetyCutoffTriggered ? "true" : "false");
+  Serial.print(zonas[i].corteSeguridad ? "true" : "false");
   Serial.print(",\"cooldown_active\":");
-  Serial.print(cooldownActive ? "true" : "false");
+  Serial.print(descansoActivo ? "true" : "false");
   Serial.print(",\"runtime_ms\":");
-  Serial.print(z.currentRuntimeMs);
+  Serial.print(zonas[i].tiempoRiegoActual);
   Serial.print(",\"mode\":\"");
-  Serial.print(modeStr);
+  Serial.print(nombreModo);
   Serial.println("\"}");
 }
 
-// Procesa comandos entrantes del Backend (ej: Z1:PUMP=1, Z1:MODE=AUTO, Z1:THRESH=24.2,27.7)
-void processSerialCommand(String cmd) {
+// Interpreta los comandos enviados por la app / backend
+void procesarComando(String cmd) {
   cmd.trim();
   if (cmd.length() < 4) return;
 
@@ -231,90 +207,92 @@ void processSerialCommand(String cmd) {
   else if (cmd.startsWith("Z2:")) idx = 1;
   else return;
 
-  IrrigationZone& z = zones[idx];
-  String body = cmd.substring(3);
+  String accion = cmd.substring(3);
 
-  if (body == "PUMP=1") {
-    z.mode = MODE_AI;
-    z.manualRequestedState = true;
-    z.manualOverrideActive = true;
-  } else if (body == "PUMP=0") {
-    z.mode = MODE_AI;
-    z.manualRequestedState = false;
-    z.manualOverrideActive = true;
-  } else if (body == "MODE=AI") {
-    z.mode = MODE_AI;
-    z.manualOverrideActive = false;
-  } else if (body == "MODE=AUTO" || body == "AUTO") {
-    z.mode = MODE_AUTO;
-    z.manualOverrideActive = false;
-    z.manualRequestedState = false;
-  } else if (body == "MODE=MONITOR") {
-    z.mode = MODE_MONITOR;
-    z.manualRequestedState = false;
-    z.manualOverrideActive = true;
-  } else if (body == "RESET_FAULT") {
-    z.safetyCutoffTriggered = false;
-    z.sensorFault = false;
-  } else if (body.startsWith("THRESH=")) {
-    String vals = body.substring(7);
-    int comma = vals.indexOf(',');
-    if (comma > 0) {
-      float low = vals.substring(0, comma).toFloat();
-      float high = vals.substring(comma + 1).toFloat();
-      if (low > 5.0f && high > low && high < 95.0f) {
-        z.lowThresholdPct = low;
-        z.highThresholdPct = high;
+  if (accion == "PUMP=1") {
+    zonas[idx].modo = MODO_AI;
+    zonas[idx].ordenBombaManual = true;
+  } else if (accion == "PUMP=0") {
+    zonas[idx].modo = MODO_AI;
+    zonas[idx].ordenBombaManual = false;
+  } else if (accion == "MODE=AI") {
+    zonas[idx].modo = MODO_AI;
+  } else if (accion == "MODE=AUTO" || accion == "AUTO") {
+    zonas[idx].modo = MODO_AUTO;
+    zonas[idx].ordenBombaManual = false;
+  } else if (accion == "MODE=MONITOR") {
+    zonas[idx].modo = MODO_MONITOR;
+    zonas[idx].ordenBombaManual = false;
+  } else if (accion == "RESET_FAULT") {
+    zonas[idx].corteSeguridad = false;
+    zonas[idx].errorSensor = false;
+  } else if (accion.startsWith("THRESH=")) {
+    String valores = accion.substring(7);
+    int coma = valores.indexOf(',');
+    if (coma > 0) {
+      float bajo = valores.substring(0, coma).toFloat();
+      float alto = valores.substring(coma + 1).toFloat();
+      if (bajo > 5.0 && alto > bajo && alto < 95.0) {
+        zonas[idx].umbralBajo = bajo;
+        zonas[idx].umbralAlto = alto;
       }
     }
   }
 
-  unsigned long nowMs = millis();
-  evaluateZone(idx, nowMs);
-  publishZoneTelemetry(idx, nowMs);
+  unsigned long ahora = millis();
+  revisarZona(idx, ahora);
+  enviarTelemetria(idx, ahora);
 }
 
 void setup() {
   Serial.begin(9600);
-  pinMode(PIN_PUMP_Z1, OUTPUT);
-  pinMode(PIN_PUMP_Z2, OUTPUT);
-  pinMode(PIN_LED_PUMP_Z1, OUTPUT);
-  pinMode(PIN_LED_FAULT_Z1, OUTPUT);
-  pinMode(PIN_LED_PUMP_Z2, OUTPUT);
-  pinMode(PIN_LED_FAULT_Z2, OUTPUT);
+
+  pinMode(PIN_BOMBA_Z1, OUTPUT);
+  pinMode(PIN_BOMBA_Z2, OUTPUT);
+  pinMode(PIN_LED_BOMBA_Z1, OUTPUT);
+  pinMode(PIN_LED_FALLA_Z1, OUTPUT);
+  pinMode(PIN_LED_BOMBA_Z2, OUTPUT);
+  pinMode(PIN_LED_FALLA_Z2, OUTPUT);
   pinMode(PIN_HEARTBEAT, OUTPUT);
 
-  digitalWrite(PIN_PUMP_Z1, LOW);
-  digitalWrite(PIN_PUMP_Z2, LOW);
+  // Iniciar bombas apagadas
+  digitalWrite(PIN_BOMBA_Z1, LOW);
+  digitalWrite(PIN_BOMBA_Z2, LOW);
 }
 
 void loop() {
+  // Leer caracteres del puerto serial
   while (Serial.available() > 0) {
     char c = (char)Serial.read();
     if (c == '\n' || c == '\r' || c == ';') {
-      if (serialRxBuffer.length() > 0) {
-        processSerialCommand(serialRxBuffer);
-        serialRxBuffer = "";
+      if (bufferSerial.length() > 0) {
+        procesarComando(bufferSerial);
+        bufferSerial = "";
       }
     } else {
-      serialRxBuffer += c;
-      lastSerialCharMs = millis();
+      bufferSerial += c;
+      tiempoUltimoCaracter = millis();
     }
   }
 
-  unsigned long nowMs = millis();
-  if (serialRxBuffer.length() > 0 && (nowMs - lastSerialCharMs) >= 120) {
-    processSerialCommand(serialRxBuffer);
-    serialRxBuffer = "";
+  unsigned long ahora = millis();
+
+  // Por si llego un comando sin enter/salto de linea
+  if (bufferSerial.length() > 0 && (ahora - tiempoUltimoCaracter) >= 120) {
+    procesarComando(bufferSerial);
+    bufferSerial = "";
   }
 
-  if (nowMs - lastSampleMs >= SAMPLE_INTERVAL_MS) {
-    lastSampleMs = nowMs;
+  // Tarea periodica de medicion y envio de datos
+  if (ahora - tiempoUltimaLectura >= INTERVALO_LECTURA) {
+    tiempoUltimaLectura = ahora;
+    
+    // Parpadeo del led testigo (heartbeat)
     digitalWrite(PIN_HEARTBEAT, !digitalRead(PIN_HEARTBEAT));
 
     for (int i = 0; i < 2; i++) {
-      evaluateZone(i, nowMs);
-      publishZoneTelemetry(i, nowMs);
+      revisarZona(i, ahora);
+      enviarTelemetria(i, ahora);
     }
   }
 }
